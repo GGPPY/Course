@@ -102,6 +102,13 @@ class Menu(db.Model):
     # 前端路由
     route = db.Column(db.String(250))
 
+    permissions = db.relationship(
+        'Permission',
+        secondary=menus_permissions,
+        backref=db.backref("permission", lazy='dynamic'),
+        lazy='dynamic'
+    )
+
 
 class Permission(db.Model):
     __table_name__ = 'permission'

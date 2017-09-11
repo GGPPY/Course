@@ -11,9 +11,9 @@ from flask_login import current_user
 
 
 class Permission(object):
-    USER_MANAGE = 0x01
     CHANGE_PWD = 0X02
-    TEST = 0x04
+    COURSE_MANAGE = 0X04
+    STUDENT_MANAGE = 0x08
     ADMIN = 0xff
 
 

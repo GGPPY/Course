@@ -7,13 +7,12 @@
 # @Software: PyCharm
 import datetime
 
-from .models import User
 from flask import jsonify, request
 from flask.views import MethodView
 from flask_login import login_required, login_user, logout_user
 
 from .. import login_manager, db
-from .models import Role
+from .models import Role, Menu, User
 from .permission import Permission, permission_required
 
 
@@ -60,7 +59,7 @@ def login():
         return jsonify({"code": 2, "msg": "用户名或密码错误"})
 
 
-@permission_required(Permission.TEST)
+@permission_required(Permission.ADMIN)
 def test_api():
     return jsonify('hello world')
 
@@ -131,3 +130,76 @@ class Users(MethodView):
             return jsonify(code=1, msg='密码重置成功！')
         else:
             return jsonify(code=0, msg='用户不存在！')
+
+
+# 用户组管理类视图
+class Roles(MethodView):
+    decorators = [permission_required(Permission.ADMIN)]
+
+    # 获取所有用户组
+    def get(self):
+        page = int(request.args.get('page', 1))
+        pagesize = int(request.args.get('pagesize', 20))
+        query = Role.query.order_by(Role.id).paginate(page=page, per_page=pagesize, error_out=False)
+        data_list = {"page": query.page, "pagesize": query.per_page, "pages": query.pages}
+        data_list.update({"items": [{"id": x.id, "name": x.name, 'description': x.description}for x in query.items]})
+        return jsonify(data_list)
+
+    # 新增一个用户组
+    def post(self):
+        args = request.get_json()
+        params_valid = ("name", "description", "menus")
+        error_msg = [x for x in args if x not in params_valid]
+        missing_msg = [x for x in params_valid if x not in args]
+        if len(error_msg) > 0 or len(args) == 0:
+            return jsonify({"error params": error_msg})
+        elif len(args) < len(params_valid):
+            return jsonify({"missing params": missing_msg})
+        name = args['name']
+        description = args['description']
+        menu_id = args['menus']
+        if not Role.query.filter_by(name=name).first():
+            r = Role()
+            r.name = name
+            r.description = description
+            # 添加用户权限菜单
+            if len(menu_id) > 0:
+                r.menu = Menu.query.filter(Menu.id.in_(menu_id)).all()
+            db.session.add(r)
+            db.session.commit()
+            return jsonify(code=1, msg='添加成功！')
+        else:
+            return jsonify(code=0, msg='用户组已存在！')
+
+    # 更新一个用户组
+    def put(self, role_id):
+        args = request.get_json()
+        params_valid = ("name", "description")
+        error_msg = [x for x in args if x not in params_valid]
+        missing_msg = [x for x in params_valid if x not in args]
+        if len(error_msg) > 0 or len(args) == 0:
+            return jsonify({"error params": error_msg})
+        elif len(args) < len(params_valid):
+            return jsonify({"missing params": missing_msg})
+        name = args['name']
+        description = args['description']
+        role = Role.query.filter_by(id=role_id).first()
+        if role:
+            if not Role.query.filter_by(name=name).first():
+                role.name = name
+                role.description = description
+                db.session.add(role)
+                db.session.commit()
+                return jsonify(code=1, msg='修改成功！')
+        else:
+            return jsonify(code=0, msg='该用户组不存在！')
+
+    # 删除一个用户组
+    def delete(self, role_id):
+        r = Role.query.filter_by(id=role_id).first()
+        if r is not None:
+            db.session.delete(r)
+            db.session.commit()
+            return jsonify(code=1, msg='删除成功！')
+        else:
+            return jsonify(code=0, msg='用户组不存在！')

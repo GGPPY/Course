@@ -18,3 +18,9 @@ user_view = views.Users.as_view('users')
 auth.add_url_rule('/users', view_func=user_view, methods=['GET', 'POST'])
 # 删除用户，重置密码
 auth.add_url_rule('/users/<int:user_id>', view_func=user_view, methods=['PUT', 'DELETE'])
+
+role_view = views.Roles.as_view('role')
+# 查看所有用户组，添加组
+auth.add_url_rule('/roles', view_func=role_view, methods=['GET', 'POST'])
+# 删除，更新用户组
+auth.add_url_rule('/roles/<int:role_id>', view_func=role_view, methods=['PUT', 'DELETE'])
