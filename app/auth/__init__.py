@@ -24,3 +24,12 @@ role_view = views.Roles.as_view('role')
 auth.add_url_rule('/roles', view_func=role_view, methods=['GET', 'POST'])
 # 删除，更新用户组
 auth.add_url_rule('/roles/<int:role_id>', view_func=role_view, methods=['PUT', 'DELETE'])
+
+# 查看用户组下用户
+auth.add_url_rule('/roles/users', view_func=views.role_user, methods=['POST'])
+
+role_permission = views.SetPermission.as_view('permission')
+# 查看用户组权限
+auth.add_url_rule('/roles/permission/', defaults={"role_id": None}, view_func=role_permission, methods=['GET', ])
+# 设置用户组权限
+auth.add_url_rule('/roles/permission/<int:role_id>', view_func=role_permission, methods=['PUT', 'GET'])

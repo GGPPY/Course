@@ -43,10 +43,13 @@ login_manager.anonymous_user = AnonymousUser
 
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     user_name = db.Column(db.String)
     name = db.Column(db.String)
     password_hash = db.Column(db.String(128))
+    email = db.Column(db.String)
+    phone = db.Column(db.String)
     last_login = db.Column(db.DateTime)
     create_time = db.Column(db.DateTime, server_default=func.now())
     create_user = db.Column(db.Integer)
@@ -54,8 +57,11 @@ class User(UserMixin, db.Model):
 
     role = db.relationship('Role',
                            secondary=roles_users,
-                           backref=db.backref('User', lazy='dynamic'),
+                           backref=db.backref('users', lazy='dynamic'),
                            lazy='dynamic')
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
 
     @property
     def password(self):

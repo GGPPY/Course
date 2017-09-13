@@ -6,6 +6,8 @@
 # @File    : views.py
 # @Software: PyCharm
 import datetime
+import itertools
+from collections import OrderedDict
 
 from flask import jsonify, request
 from flask.views import MethodView
@@ -59,7 +61,7 @@ def login():
         return jsonify({"code": 2, "msg": "用户名或密码错误"})
 
 
-@permission_required(Permission.ADMIN)
+@permission_required(*[Permission.COURSE_MANAGE, Permission.STUDENT_MANAGE, Permission.ADMIN])
 def test_api():
     return jsonify('hello world')
 
@@ -83,7 +85,7 @@ class Users(MethodView):
     @staticmethod
     def post():
         args = request.get_json()
-        params_valid = ("name", "roles", "phone", "email")
+        params_valid = ("user_name", "roles", "phone", "email", "name")
         error_msg = [x for x in args if x not in params_valid]
         missing_msg = [x for x in params_valid if x not in args]
         if len(error_msg) > 0 or len(args) == 0:
@@ -91,19 +93,12 @@ class Users(MethodView):
         elif len(args) < len(params_valid):
             return jsonify({"missing params": missing_msg})
         password = '123456'
-        name = args['name']
-        roles = args['roles']
-        phone = args['phone']
-        email = args['email']
-        if not User.query.filter_by(name=name).first():
-            u = User()
-            u.password = password
-            u.name = name
-            u.cellphone = phone
-            u.email = email
+        user_name, name, roles, phone, email = args['user_name'], args['name'], args['roles'], args['phone'], args['email']
+        if not User.query.filter_by(user_name=user_name).first():
+            u = User(user_name=user_name, name=name, email=email, phone=phone, password=password)
             # 分配用户组
             if roles:
-                u.roles = Role.query.filter(Role.id.in_(roles)).all()
+                u.role = Role.query.filter(Role.id.in_(roles)).all()
             db.session.add(u)
             db.session.commit()
             return jsonify(code=1, msg='添加成功！')
@@ -130,6 +125,31 @@ class Users(MethodView):
             return jsonify(code=1, msg='密码重置成功！')
         else:
             return jsonify(code=0, msg='用户不存在！')
+
+
+# 获取用户组下用户
+@login_required
+@permission_required(Permission.ADMIN)
+def role_user():
+    args = request.get_json()
+    params_valid = ("role_id",)
+    page = int(args.pop('page', 1))
+    per_page = int(args.pop('per_page', 20))
+    error_msg = [x for x in args if x not in params_valid]
+    missing_msg = [x for x in params_valid if x not in args]
+    if len(error_msg) > 0 or len(args) == 0:
+        return jsonify({"error params": error_msg})
+    elif len(args) < len(params_valid):
+        return jsonify({"missing params": missing_msg})
+    role_id = args.get('role_id', None)
+    role = Role.query.filter(Role.id == role_id).first()
+    if role:
+        users = role.users.paginate(page=page, per_page=per_page, error_out=False)
+        data = [{'id': x.id, 'user_name': x.user_name, 'name': x.name, 'cellphone': x.phone, 'email': x.email}
+                for x in users.items]
+        return jsonify(page=page, pages=users.pages, data=data)
+    else:
+        return jsonify(code=0, msg='用户组不存在')
 
 
 # 用户组管理类视图
@@ -165,6 +185,11 @@ class Roles(MethodView):
             # 添加用户权限菜单
             if len(menu_id) > 0:
                 r.menu = Menu.query.filter(Menu.id.in_(menu_id)).all()
+                permissions = []
+                for menu in r.menu.filter(Menu.parent != 0).all():
+                    permissions = list(itertools.chain(permissions, *menu.permissions.with_entities('hex').all()))
+                permission = reduce(lambda x, y: x | y, list(permissions))
+                r.permission = permission
             db.session.add(r)
             db.session.commit()
             return jsonify(code=1, msg='添加成功！')
@@ -201,5 +226,86 @@ class Roles(MethodView):
             db.session.delete(r)
             db.session.commit()
             return jsonify(code=1, msg='删除成功！')
+        else:
+            return jsonify(code=0, msg='用户组不存在！')
+
+
+# 用户组权限管理类
+class SetPermission(MethodView):
+    decorators = [permission_required(Permission.ADMIN), login_required]
+
+    # 获取组成员资源列表/空白资源列表
+    def get(self, role_id):
+        # user_id = request.args.get("id", None)
+        # 不传入用户组id时 获取空白的权限列表
+        if role_id is None:
+            menu_list = list()
+            menus = Menu.query.filter_by(parent=0).order_by(Menu.sort).all()
+            query = Menu.query.filter(Menu.parent != 0).order_by(Menu.parent).order_by(Menu.sort).all()
+            items = dict()
+            for item in query:
+                if item.parent not in items:
+                    items[item.parent] = []
+                items[item.parent].append(OrderedDict((("id", item.id), ("name", item.name), ("check", False))))
+            for item in menus:
+                menu_list.append(
+                    {
+                        "id": item.id,
+                        "name": item.name,
+                        "items": items[item.id],
+                        "check": False
+                    }
+                )
+            return jsonify(menu_list)
+        # 传入用户组id时，获取对应用户组的权限列表
+        else:
+            role = Role.query.get(int(role_id))
+            if role is None:
+                return jsonify(code=0, msg='该用户组不存在')
+            resource_list = [x.id for x in role.menu.order_by(Menu.id).all()]
+            permission_list = list()
+            menus = Menu.query.filter_by(parent=0).order_by(Menu.sort).all()
+            query = Menu.query.filter(Menu.parent != 0).order_by(Menu.parent).order_by(Menu.sort).all()
+            items = dict()
+            for item in query:
+                if item.parent not in items:
+                    items[item.parent] = []
+                items[item.parent].append(OrderedDict((("id", item.id),
+                                                       ("name", item.name),
+                                                       ("check", item.id in resource_list))))
+            for item in menus:
+                permission_list.append(
+                    {
+                        "id": item.id,
+                        "name": item.name,
+                        "items": items[item.id],
+                        "check":  item.id in resource_list
+                    }
+                )
+            return jsonify(permission_list)
+
+    # 更新用户组权限
+    def put(self, role_id):
+        role = Role.query.get(int(role_id))
+        args = request.get_json()
+        params_valid = ("menus",)
+        error_msg = [x for x in args if x not in params_valid]
+        missing_msg = [x for x in params_valid if x not in args]
+        if len(error_msg) > 0 or len(args) == 0:
+            return jsonify({"error params": error_msg})
+        elif len(args) < len(params_valid):
+            return jsonify({"missing params": missing_msg})
+        menu_id = args["menus"]
+        menus = Menu.query.filter(Menu.id.in_(menu_id)).all()
+        if role is not None:
+            role.menu = menus
+            permissions = []
+            for menu in role.menu.filter(Menu.parent != 0).all():
+                permissions = list(itertools.chain(permissions, *menu.permissions.with_entities('hex').all()))
+            permission = reduce(lambda x, y: x | y, list(permissions))
+            role.permission = permission
+            db.session.add(role)
+            db.session.commit()
+            return jsonify(code=1, msg='权限设置成功！')
         else:
             return jsonify(code=0, msg='用户组不存在！')

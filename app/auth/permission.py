@@ -14,7 +14,7 @@ class Permission(object):
     CHANGE_PWD = 0X02
     COURSE_MANAGE = 0X04
     STUDENT_MANAGE = 0x08
-    ADMIN = 0xff
+    ADMIN = 0x10
 
 
 def permission_required(*permissions):
@@ -22,9 +22,9 @@ def permission_required(*permissions):
         @wraps(f)
         def decorated_func(*args, **kwargs):
             for permission in permissions:
-                if current_user.can(permission):
-                    return f(*args, **kwargs)
-            return abort(403)
+                if not current_user.can(permission):
+                    return abort(403)
+            return f(*args, **kwargs)
 
         return decorated_func
 

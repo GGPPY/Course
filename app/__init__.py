@@ -24,4 +24,6 @@ def create_app(config_name):
     login_manager.init_app(app)
     from app.auth import auth
     app.register_blueprint(auth)
+    from app.course import course
+    app.register_blueprint(course)
     return app
