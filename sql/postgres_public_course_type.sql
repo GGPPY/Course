@@ -1,0 +1,1 @@
+INSERT INTO public.course_type (id, name, create_time, create_user, update_time, update_user) VALUES (1, '13天甜点速成', '2017-09-14 09:46:57.974000', '许大贵', null, null);
