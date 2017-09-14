@@ -14,6 +14,10 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_POOL_SIZE = 20
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres:123456@127.0.0.1:5432/postgres"
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    CARD_IMAGE_PATH = os.path.join(basedir, 'static/media/card_image')
+    PAY_IMAGE_PATH = os.path.join(basedir, 'static/media/pay_image')
+    print CARD_IMAGE_PATH, PAY_IMAGE_PATH
 
     @staticmethod
     def init_app(app):
