@@ -16,9 +16,8 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 
 
-
 def create_app(config_name):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../static')
     app.config.from_object(config.get(config_name))
     config.get(config_name).init_app(app)
     db.init_app(app)

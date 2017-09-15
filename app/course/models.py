@@ -3,7 +3,6 @@ import datetime
 
 from flask_login import current_user
 
-
 from .. import db
 
 
@@ -83,7 +82,8 @@ class Student(db.Model):
     area = db.Column(db.String)
     basis = db.Column(db.Boolean)
     size = db.Column(db.String)
-    id_card_image = db.Column(db.String)
+    card_image_front = db.Column(db.String)
+    card_image_back = db.Column(db.String)
     pay_image = db.Column(db.String)
     create_time = db.Column(db.DateTime)
     update_time = db.Column(db.DateTime)
