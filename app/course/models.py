@@ -100,12 +100,3 @@ class Student(db.Model):
 
 db.event.listen(Student, 'before_insert', Student.before_insert_func)
 db.event.listen(Student, 'before_update', Student.before_update_func)
-
-
-
-
-
-
-
-
-

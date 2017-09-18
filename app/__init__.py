@@ -26,4 +26,6 @@ def create_app(config_name):
     app.register_blueprint(auth)
     from app.course import course
     app.register_blueprint(course)
+    from app.main import main
+    app.register_blueprint(main)
     return app
