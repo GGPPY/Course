@@ -77,10 +77,10 @@ class Student(db.Model):
     name = db.Column(db.String)
     phone = db.Column(db.String)
     wx = db.Column(db.String)
-    ws_name = db.Column(db.String)
+    wx_name = db.Column(db.String)
     qq = db.Column(db.String)
     area = db.Column(db.String)
-    basis = db.Column(db.Boolean)
+    base = db.Column(db.Boolean)
     size = db.Column(db.String)
     card_image_front = db.Column(db.String)
     card_image_back = db.Column(db.String)
@@ -88,6 +88,12 @@ class Student(db.Model):
     create_time = db.Column(db.DateTime)
     update_time = db.Column(db.DateTime)
     update_user = db.Column(db.String)
+
+    def __init__(self, kwargs):
+        valid_keys = ('card_image_front', 'card_image_back', 'pay_image', 'course_id', 'name', 'phone', 'wx', 'wx_name',
+                      'qq', 'area', 'base', 'size')
+        for key, value in kwargs.iteritems():
+            self.__setattr__(key, value)
 
     @staticmethod
     def before_insert_func(mapper, connection, target):
