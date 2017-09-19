@@ -6,38 +6,50 @@ from flask_login import current_user
 from .. import db
 
 
-class CourseType(db.Model):
-    __tablename__ = 'course_type'
+class Subject(db.Model):
+    __tablename__ = 'subject'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
+    subject_image = db.Column(db.String)
+    subject_url = db.Column(db.String)
     create_user = db.Column(db.String)
     create_time = db.Column(db.DateTime)
     update_user = db.Column(db.String)
     update_time = db.Column(db.DateTime)
 
+    def __init__(self, kwargs):
+        valid_keys = ('name', 'subject_image', 'subject_url')
+        for key, value in kwargs.iteritems():
+            if key in valid_keys:
+                self.__setattr__(key, value)
+
+    def update(self, kwargs):
+        valid_keys = ('name', 'subject_image', 'subject_url')
+        for key, value in kwargs.iteritems():
+            if key in valid_keys:
+                self.__setattr__(key, value)
+
     @staticmethod
     def before_insert_func(mapper, connection, target):
-        target.create_user = current_user.name
+        # target.create_user = current_user.name
         target.create_time = datetime.datetime.now()
 
     @staticmethod
     def before_update_func(mapper, connection, target):
-        target.update_user = current_user.name
+        # target.update_user = current_user.name
         target.update_time = datetime.datetime.now()
 
-db.event.listen(CourseType, 'before_insert', CourseType.before_insert_func)
-db.event.listen(CourseType, 'before_update', CourseType.before_update_func)
+db.event.listen(Subject, 'before_insert', Subject.before_insert_func)
+db.event.listen(Subject, 'before_update', Subject.before_update_func)
 
 
 class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
-    type_id = db.Column(db.Integer, db.ForeignKey('course_type.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
     name = db.Column(db.String)
     start_time = db.Column(db.Date)
     end_time = db.Column(db.Date)
-    image_path = db.Column(db.String)
-    course_url = db.Column(db.String)
     period = db.Column(db.Integer)
     active = db.Column(db.Boolean, default=True)
     create_user = db.Column(db.String)
@@ -47,7 +59,7 @@ class Course(db.Model):
 
     @staticmethod
     def before_insert_func(mapper, connection, target):
-        Course.query.filter(Course.type_id == target.type_id).update({Course.active: False})
+        Course.query.filter(Course.subject_id == target.subject_id).update({Course.active: False})
         target.create_user = current_user.name
         target.create_time = datetime.datetime.now()
 
@@ -59,7 +71,7 @@ class Course(db.Model):
     @staticmethod
     def on_active_change(target, value, oldvalue, initiator):
         if oldvalue is not True:
-            Course.query.filter(Course.active.is_(True), Course.type_id == target.type_id).update(
+            Course.query.filter(Course.active.is_(True), Course.subject_id == target.subject_id).update(
                 {Course.active: False})
         else:
             pass
@@ -92,8 +104,10 @@ class Student(db.Model):
     def __init__(self, kwargs):
         valid_keys = ('card_image_front', 'card_image_back', 'pay_image', 'course_id', 'name', 'phone', 'wx', 'wx_name',
                       'qq', 'area', 'base', 'size')
+
         for key, value in kwargs.iteritems():
-            self.__setattr__(key, value)
+            if key in valid_keys:
+                self.__setattr__(key, value)
 
     @staticmethod
     def before_insert_func(mapper, connection, target):

@@ -17,10 +17,10 @@ class Config(object):
     BASEDIR = os.path.abspath(os.path.dirname(__file__))
     CARD_IMAGE_PATH = 'media/card_image'
     PAY_IMAGE_PATH = 'media/pay_image'
-    if not os.path.exists(os.path.join(BASEDIR, CARD_IMAGE_PATH)):
-        os.makedirs(os.path.join(BASEDIR, CARD_IMAGE_PATH))
-    if not os.path.exists(os.path.join(BASEDIR, PAY_IMAGE_PATH)):
-        os.makedirs(os.path.join(BASEDIR, PAY_IMAGE_PATH))
+    SUBJECT_IMAGE_PATH = 'media/subject_image'
+    for path in (CARD_IMAGE_PATH, PAY_IMAGE_PATH, SUBJECT_IMAGE_PATH):
+        if not os.path.exists(os.path.join(BASEDIR, path)):
+            os.makedirs(os.path.join(BASEDIR, path))
 
     @staticmethod
     def init_app(app):
