@@ -11,8 +11,11 @@ from flask_script import Manager, Shell, Server
 from flask_migrate import Migrate, MigrateCommand
 
 from app import create_app, db
+from app.utils.tools import CustomJSONEncoder
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'local')
+app.json_encoder = CustomJSONEncoder
+
 manager = Manager(app)
 migrate = Migrate(app, db)
 

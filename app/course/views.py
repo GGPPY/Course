@@ -3,7 +3,7 @@ import datetime
 import random
 import os
 
-from flask import current_app, request, send_from_directory, jsonify, url_for, send_from_directory
+from flask import current_app, request, jsonify
 from flask.views import MethodView
 from werkzeug.utils import secure_filename
 
@@ -91,7 +91,7 @@ class SubjectView(MethodView):
 
     @staticmethod
     def get():
-        data = Subject.query.with_entities(Subject.id, Subject.name, Subject.subject_image, Subject.subject_url).all()
+        data = Subject.query.with_entities(*Subject.__table__.c).all()
         return jsonify(data)
 
     @staticmethod
@@ -155,6 +155,76 @@ class SubjectView(MethodView):
         s = Subject.query.filter(Subject.id == subject_id).first()
         if s:
             db.session.delete(s)
+            db.session.commit()
+            return jsonify({"code": 1, "msg": "删除成功"})
+        return jsonify({"code": 0, "msg": "科目不存在"})
+
+
+class CourseView(MethodView):
+
+    @staticmethod
+    def get():
+        column = list(Course.__table__.c)
+        column.append(Subject.name.label('subject_name'))
+        data = Course.query.with_entities(*column).join(Subject, Course.subject_id == Subject.id).all()
+        return jsonify(data)
+
+    @staticmethod
+    def post():
+        args = request.get_json()
+        params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period')
+        error_msg = [x for x in args if x not in params_valid]
+        missing_msg = [x for x in params_valid if x not in args]
+        null_msg = [key for key, value in args.iteritems() if not value]
+        if len(error_msg) > 0:
+            return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
+        if len(args) < len(params_valid):
+            return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
+        if len(null_msg) > 0:
+            return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
+        course = Course(args)
+        db.session.add(course)
+        db.session.commit()
+        return jsonify({"code": 1, "msg": "课程添加成功"})
+
+    @staticmethod
+    def put(course_id):
+        args = request.get_json()
+        params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period')
+        error_msg = [x for x in args if x not in params_valid]
+        missing_msg = [x for x in params_valid if x not in args]
+        null_msg = [key for key, value in args.iteritems() if not value]
+        if len(error_msg) > 0:
+            return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
+        if len(args) < len(params_valid):
+            return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
+        if len(null_msg) > 0:
+            return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
+
+        error_msg = [x for x in args if x not in params_valid]
+        missing_msg = [x for x in params_valid if x not in args]
+        null_msg = [key for key, value in args.iteritems() if not value]
+        if len(error_msg) > 0:
+            return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
+        if len(args) < len(params_valid):
+            return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
+        if len(null_msg) > 0:
+            return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
+        course = Course.query.filter(Course.id == course_id).first()
+        if course:
+            course.update(args)
+            db.session.add(course)
+            db.session.commit()
+            return jsonify({"code": 1, "msg": "更新成功"})
+        return jsonify({"code": 0, "msg": "课程不存在"})
+
+    @staticmethod
+    def delete(course_id):
+        course = Course.query.filter(Course.id == course_id).first()
+        if course:
+            if course.active:
+                return jsonify({"code": 0, "msg": "无法删除激活状态的课程"})
+            db.session.delete(course)
             db.session.commit()
             return jsonify({"code": 1, "msg": "删除成功"})
         return jsonify({"code": 0, "msg": "科目不存在"})

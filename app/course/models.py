@@ -12,6 +12,7 @@ class Subject(db.Model):
     name = db.Column(db.String)
     subject_image = db.Column(db.String)
     subject_url = db.Column(db.String)
+    course = db.relationship("Course", back_populates="subject")
     create_user = db.Column(db.String)
     create_time = db.Column(db.DateTime)
     update_user = db.Column(db.String)
@@ -47,6 +48,7 @@ class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    subject = db.relationship("Subject", back_populates="course")
     name = db.Column(db.String)
     start_time = db.Column(db.Date)
     end_time = db.Column(db.Date)
@@ -57,15 +59,27 @@ class Course(db.Model):
     update_user = db.Column(db.String)
     update_time = db.Column(db.DateTime)
 
+    def __init__(self, kwargs):
+        valid_keys = ('name', 'subject_id', 'start_time', 'end_time', 'period')
+        for key, value in kwargs.iteritems():
+            if key in valid_keys:
+                self.__setattr__(key, value)
+
+    def update(self, kwargs):
+        valid_keys = ('name', 'subject_id', 'start_time', 'end_time', 'period')
+        for key, value in kwargs.iteritems():
+            if key in valid_keys:
+                self.__setattr__(key, value)
+
     @staticmethod
     def before_insert_func(mapper, connection, target):
         Course.query.filter(Course.subject_id == target.subject_id).update({Course.active: False})
-        target.create_user = current_user.name
+        # target.create_user = current_user.name
         target.create_time = datetime.datetime.now()
 
     @staticmethod
     def before_update_func(mapper, connection, target):
-        target.update_user = current_user.name
+        # target.update_user = current_user.name
         target.update_time = datetime.datetime.now()
 
     @staticmethod
