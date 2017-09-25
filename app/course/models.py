@@ -123,13 +123,17 @@ class Student(db.Model):
             if key in valid_keys:
                 self.__setattr__(key, value)
 
+    def update(self, person_info):
+        self.__init__(person_info)
+
     @staticmethod
     def before_insert_func(mapper, connection, target):
         target.create_time = datetime.datetime.now()
 
     @staticmethod
     def before_update_func(mapper, connection, target):
-        target.update_user = current_user.name
+        if not current_user.is_anonymous:
+            target.update_user = current_user.name
         target.update_time = datetime.datetime.now()
 
 db.event.listen(Student, 'before_insert', Student.before_insert_func)
