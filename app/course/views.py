@@ -233,7 +233,7 @@ class CourseView(MethodView):
         return jsonify({"code": 0, "msg": "科目不存在"})
 
 
-# 课程视图 增删改查
+# 学员视图 增删改查
 class StudentView(MethodView):
 
     @staticmethod
