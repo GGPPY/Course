@@ -3,11 +3,12 @@ import os
 
 from flask import current_app, jsonify, request, session, send_from_directory
 from flask.views import MethodView
+from flask_mail import Message
 
+from .. import db
 from ..course.models import Student, Course, Subject
 from ..course.views import image_save, allowed_file, ALLOWED_EXTENSIONS
-from .. import db
-
+from ..tasks.mail_task import send_mail_async
 
 def media(path):
     basedir = current_app.config['BASEDIR']
@@ -15,7 +16,7 @@ def media(path):
     return send_from_directory(media_path, path)
 
 
-# 学员视图 增删改查
+# 学员报名视图 增删改查
 class StudentView(MethodView):
 
     @staticmethod
@@ -78,10 +79,12 @@ class StudentView(MethodView):
         student = Student.query.filter(*exist_rule).first()
         if student:
             return jsonify({"code": 0, "msg": "已报名该课程"})
-
         student = Student(args)
         db.session.add(student)
         db.session.commit()
+        msg = Message(u'{subject}有新学员报名'.format(subject='课程A'), recipients=['476991811@qq.com'])
+        msg.body = u'{student}报名课程{subject}'.format(student=args.get('name'), subject='课程A')
+        send_mail_async.apply_async(args=msg)
         return jsonify({"code": 1, "msg": "报名成功"})
 
     @staticmethod

@@ -8,24 +8,34 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-
+from flask_mail import Mail
+from flask_celery import Celery
 
 from config import config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+mail = Mail()
+celery = Celery()
 
 
 def create_app(config_name):
     app = Flask(__name__, static_folder='../static')
     app.config.from_object(config.get(config_name))
     config.get(config_name).init_app(app)
+
     db.init_app(app)
     login_manager.init_app(app)
+    mail.init_app(app)
+    celery.init_app(app)
+
     from app.auth import auth
     app.register_blueprint(auth)
+
     from app.course import course
     app.register_blueprint(course)
+
     from app.main import main
     app.register_blueprint(main)
+    import tasks
     return app
