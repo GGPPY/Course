@@ -27,11 +27,11 @@ def create_app(config_name):
     mail.init_app(app)
 
     from app.auth import auth
-    app.register_blueprint(auth)
+    app.register_blueprint(auth, url_prefix='/api/auth')
 
     from app.course import course
-    app.register_blueprint(course)
+    app.register_blueprint(course, url_prefix='/api/course')
 
     from app.main import main
-    app.register_blueprint(main)
+    app.register_blueprint(main, url_prefix='/api')
     return app

@@ -2,7 +2,7 @@
 from flask import Blueprint
 from . import views
 
-course = Blueprint('course', __name__, url_prefix='/course')
+course = Blueprint('course', __name__)
 
 
 course.add_url_rule('/apply', view_func=views.course_apply, methods=['POST'])
@@ -14,7 +14,7 @@ course.add_url_rule('/subject/<int:subject_id>', view_func=subject, methods=["PU
 
 # 课程增删改查
 lesson = views.CourseView.as_view('lesson')
-course.add_url_rule('', view_func=lesson, methods=["GET", "POST"])
+course.add_url_rule('/', view_func=lesson, methods=["GET", "POST"])
 course.add_url_rule('/<int:course_id>', view_func=lesson, methods=["PUT", "DELETE"])
 
 # 学生增删改查

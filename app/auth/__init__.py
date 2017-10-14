@@ -8,7 +8,7 @@
 from flask import Blueprint
 from . import views
 
-auth = Blueprint('auth', __name__, url_prefix='/auth')
+auth = Blueprint('auth', __name__)
 
 # 登录
 auth.add_url_rule('/login', view_func=views.login, methods=['POST'])
