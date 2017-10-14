@@ -1,0 +1,3 @@
+INSERT INTO public.course (id, name, start_time, end_time, period, active, create_user, create_time, update_user, update_time, subject_id) VALUES (1, '第一期', '2017-09-01', '2017-09-30', 1, false, null, '2017-09-20 20:00:21.401000', null, null, 1);
+INSERT INTO public.course (id, name, start_time, end_time, period, active, create_user, create_time, update_user, update_time, subject_id) VALUES (4, '第一期', '2017-09-01', '2017-09-30', 1, false, null, '2017-09-20 21:04:34.169000', null, null, 1);
+INSERT INTO public.course (id, name, start_time, end_time, period, active, create_user, create_time, update_user, update_time, subject_id) VALUES (6, '第一期', '2017-09-01', '2017-09-30', 1, true, null, '2017-10-13 21:45:53.952000', null, null, 1);
