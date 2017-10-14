@@ -1,6 +1,10 @@
-from .. import mail, celery
+# coding=utf-8
+import os
+
+from .. import mail, create_app
 
 
-@celery.task(name='send_mail_async')
-def send_mail_async(msg):
-    mail.send(msg)
+def send_mail(msg):
+    app = create_app(os.getenv('FLASK_CONFIG') or 'local')
+    with app.app_context():
+        mail.send(msg)

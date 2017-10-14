@@ -15,6 +15,7 @@ class Permission(object):
     COURSE_MANAGE = 0X04
     STUDENT_MANAGE = 0x08
     ADMIN = 0x10
+    SUBJECT_MANGE = 0x20
 
 
 def permission_required(*permissions):

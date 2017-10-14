@@ -227,6 +227,8 @@ class CourseView(MethodView):
         if course:
             if course.active:
                 return jsonify({"code": 0, "msg": "无法删除激活状态的课程"})
+            if course.students:
+                return jsonify({"code": 0, "msg": "无法删除有学员的课程"})
             db.session.delete(course)
             db.session.commit()
             return jsonify({"code": 1, "msg": "删除成功"})

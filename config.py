@@ -17,6 +17,9 @@ class Config(object):
     CELERY_ENABLE_UTC = False
     CELERY_BROKER_URL = 'redis://:linezone@localhost:6379/0',
     CELERY_RESULT_BACKEND = 'redis://:linezone@localhost:6379/1'
+    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_RESULT_SERIALIZER = 'json'
+    CELERY_ACCEPT_CONTENT = ['json']
     MAIL_SERVER = 'smtp.exmail.qq.com'
     MAIL_PORT = 465
     MAIL_USE_SSL = True

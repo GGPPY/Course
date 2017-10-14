@@ -59,6 +59,8 @@ class Course(db.Model):
     update_user = db.Column(db.String)
     update_time = db.Column(db.DateTime)
 
+    students = db.relationship("Student", back_populates='course')
+
     def __init__(self, kwargs):
         valid_keys = ('name', 'subject_id', 'start_time', 'end_time', 'period')
         for key, value in kwargs.iteritems():
@@ -100,6 +102,7 @@ class Student(db.Model):
     __tablename__ = 'student'
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    course = db.relationship("Course", back_populates="students")
     name = db.Column(db.String)
     phone = db.Column(db.String)
     wx = db.Column(db.String)

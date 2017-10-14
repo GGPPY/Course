@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 from flask import jsonify, request
 from flask.views import MethodView
-from flask_login import login_required, login_user, logout_user
+from flask_login import login_required, login_user, logout_user, current_user
 
 from .. import login_manager, db
 from .models import Role, Menu, User
@@ -61,9 +61,35 @@ def login():
         return jsonify({"code": 2, "msg": "用户名或密码错误"})
 
 
-@permission_required(*[Permission.COURSE_MANAGE, Permission.STUDENT_MANAGE, Permission.ADMIN])
-def test_api():
-    return jsonify('hello world')
+# 注销
+@login_required
+def logout():
+    logout_user()
+    res = jsonify(code=1, msg='登出成功')
+    res.set_cookie('user_name', expires=0)
+    return res
+
+
+# 修改密码
+@login_required
+def change_password():
+    args = request.get_json()
+    params_valid = ("new_password", "old_password")
+    error_msg = [x for x in args if x not in params_valid]
+    missing_msg = [x for x in params_valid if x not in args]
+    if len(error_msg) > 0 or len(args) == 0:
+        return jsonify({"error params": error_msg})
+    elif len(args) < len(params_valid):
+        return jsonify({"missing params": missing_msg})
+    old_password = args["old_password"]
+    new_password = args["new_password"]
+    if current_user is not None and current_user.verify_password(old_password):
+        current_user.password = new_password
+        current_user.modify_time = datetime.datetime.now()
+        db.session.commit()
+        return jsonify(code=1, msg="修改密码成功")
+    else:
+        return jsonify(code=0, msg="修改密码失败，密码错误")
 
 
 # 用户管理类视图
@@ -134,7 +160,7 @@ def role_user():
     args = request.get_json()
     params_valid = ("role_id",)
     page = int(args.pop('page', 1))
-    per_page = int(args.pop('per_page', 20))
+    pagesize = int(args.pop('pagesize', 20))
     error_msg = [x for x in args if x not in params_valid]
     missing_msg = [x for x in params_valid if x not in args]
     if len(error_msg) > 0 or len(args) == 0:
@@ -144,7 +170,7 @@ def role_user():
     role_id = args.get('role_id', None)
     role = Role.query.filter(Role.id == role_id).first()
     if role:
-        users = role.users.paginate(page=page, per_page=per_page, error_out=False)
+        users = role.users.paginate(page=page, per_page=pagesize, error_out=False)
         data = [{'id': x.id, 'user_name': x.user_name, 'name': x.name, 'cellphone': x.phone, 'email': x.email}
                 for x in users.items]
         return jsonify(page=page, pages=users.pages, data=data)
@@ -216,6 +242,7 @@ class Roles(MethodView):
                 db.session.add(role)
                 db.session.commit()
                 return jsonify(code=1, msg='修改成功！')
+            return jsonify(code=0, msg='用户组已存在！')
         else:
             return jsonify(code=0, msg='该用户组不存在！')
 

@@ -10,8 +10,13 @@ from . import views
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
+# 登录
 auth.add_url_rule('/login', view_func=views.login, methods=['POST'])
-auth.add_url_rule('/test', view_func=views.test_api, methods=['GET'])
+# 注销
+auth.add_url_rule('/logout', view_func=views.logout, methods=['GET'])
+
+# 修改密码
+auth.add_url_rule('/password', view_func=views.change_password, methods=['POST'])
 
 user_view = views.Users.as_view('users')
 # 查看用户列表，添加用户

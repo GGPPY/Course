@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import threading
 
 from flask import current_app, jsonify, request, session, send_from_directory
 from flask.views import MethodView
@@ -8,7 +9,8 @@ from flask_mail import Message
 from .. import db
 from ..course.models import Student, Course, Subject
 from ..course.views import image_save, allowed_file, ALLOWED_EXTENSIONS
-from ..tasks.mail_task import send_mail_async
+from ..tasks.mail_task import send_mail
+
 
 def media(path):
     basedir = current_app.config['BASEDIR']
@@ -82,9 +84,12 @@ class StudentView(MethodView):
         student = Student(args)
         db.session.add(student)
         db.session.commit()
-        msg = Message(u'{subject}有新学员报名'.format(subject='课程A'), recipients=['476991811@qq.com'])
-        msg.body = u'{student}报名课程{subject}'.format(student=args.get('name'), subject='课程A')
-        send_mail_async.apply_async(args=msg)
+
+        # 邮件发送
+        msg = Message(u'{subject}有新学员报名'.format(subject=u'课程A'), recipients=['476991811@qq.com'])
+        msg.body = u'{student}报名课程{subject}'.format(student=args.get('name'), subject=u'课程A')
+        send_mail_thread = threading.Thread(target=send_mail, args=(msg,))
+        send_mail_thread.start()
         return jsonify({"code": 1, "msg": "报名成功"})
 
     @staticmethod
