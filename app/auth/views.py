@@ -180,7 +180,7 @@ def role_user():
 
 # 用户组管理类视图
 class Roles(MethodView):
-    decorators = [permission_required(Permission.ADMIN)]
+    decorators = [permission_required(Permission.ADMIN), login_required]
 
     # 获取所有用户组
     def get(self):
