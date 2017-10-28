@@ -24,7 +24,7 @@ def permission_required(*permissions):
         def decorated_func(*args, **kwargs):
             for permission in permissions:
                 if not current_user.can(permission):
-                    return abort(403)
+                    return jsonify(code=403, msg='没有权限')
             return f(*args, **kwargs)
 
         return decorated_func
