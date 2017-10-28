@@ -7,6 +7,7 @@
 # @Software: PyCharm
 import datetime
 import itertools
+from urllib import quote
 from collections import OrderedDict
 
 from flask import jsonify, request
@@ -54,7 +55,7 @@ def login():
     if user is not None and user.verify_password(password):
         login_user(user, remember=True)
         db.session.commit()
-        res = jsonify(code=1, msg="登陆成功", user_name=unicode(user.name).encode('utf-8'))
+        res = jsonify(code=1, msg="登陆成功", user_name=quote(unicode(user.name).encode('utf-8')))
         res.set_cookie('user_name', user.name, expires=datetime.datetime.utcnow() + datetime.timedelta(days=7))
         return res
     else:
