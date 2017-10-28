@@ -58,7 +58,7 @@ def login():
         res.set_cookie('user_name', user.name, expires=datetime.datetime.utcnow() + datetime.timedelta(days=7))
         return res
     else:
-        return jsonify({"code": 2, "msg": "用户名或密码错误"})
+        return jsonify({"code": 0, "msg": "用户名或密码错误"})
 
 
 # 注销
