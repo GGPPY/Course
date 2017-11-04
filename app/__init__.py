@@ -34,4 +34,6 @@ def create_app(config_name):
 
     from app.main import main
     app.register_blueprint(main, url_prefix='/api')
+    from app.main import media
+    app.register_blueprint(media)
     return app

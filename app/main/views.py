@@ -32,7 +32,7 @@ class StudentView(MethodView):
         name = args.get('name')
         course_id = args.get('course_id')
         column = list(Student.__table__.c)
-        column.extend([ Course.start_time, Course.end_time, Subject.name.label('course_name')])
+        column.extend([Course.start_time, Course.end_time, Subject.name.label('course_name')])
         data = Student.query.with_entities(*column).join(Course, Student.course_id == Course.id)\
             .join(Subject, Course.subject_id == Subject.id)\
             .filter(Student.phone == phone, Student.course_id == course_id, Student.name == name).first()
@@ -47,18 +47,18 @@ class StudentView(MethodView):
             return jsonify(code=0, msg='请使用multipart/form-data类型上传表单')
         params_valid = ('card_image_front', 'card_image_back', 'pay_image', 'course_id', 'name', 'phone', 'wx',
                         'wx_name', 'qq', 'area', 'base', 'size')
-        params_null = ('wx_name',)
+        params_null = ('wx_name', 'qq', 'area')
         args = request.files.to_dict()
         args.update(request.form.to_dict())
         error_msg = [x for x in args if x not in params_valid]
         missing_msg = [x for x in params_valid if x not in args and x not in params_null]
         null_msg = [key for key, value in args.iteritems() if not value and key not in params_null]
-        if len(error_msg) > 0:
-            return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
-        if len(args) < len(params_valid) - len(params_null):
-            return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
-        if len(null_msg) > 0:
-            return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
+        if error_msg:
+            return jsonify({"code": 0, "msg": "参数错误"})
+        if missing_msg:
+            return jsonify({"code": 0, "msg": "缺少报名信息"})
+        if null_msg:
+            return jsonify({"code": 0, "msg": "缺少报名信息"})
 
         # 图片格式判断&存储
         for image_key in ("card_image_front", "card_image_back", "pay_image"):
@@ -66,7 +66,7 @@ class StudentView(MethodView):
             if not image_file:
                 continue
             if not allowed_file(image_file.filename):
-                return jsonify({"code": 0, "msg": "only allow image types: " + str(ALLOWED_EXTENSIONS)})
+                return jsonify({"code": 0, "msg": "图片格式不正确，仅允许一下格式 " + str(ALLOWED_EXTENSIONS)})
             # 保存文件
             image_path = image_save(image_key, image_file)
             # 参数更新
@@ -101,15 +101,18 @@ class StudentView(MethodView):
             return jsonify(code=0, msg='请使用multipart/form-data类型上传表单')
         params_valid = ('card_image_front', 'card_image_back', 'pay_image', 'course_id', 'name', 'phone', 'wx',
                         'wx_name', 'qq', 'area', 'base', 'size')
-        params_null = ('wx_name',)
+        params_null = ('wx_name', 'qq', 'area')
         args = request.files.to_dict()
         args.update(request.form.to_dict())
         error_msg = [x for x in args if x not in params_valid]
+        missing_msg = [x for x in params_valid if x not in args and x not in params_null]
         null_msg = [key for key, value in args.iteritems() if not value and key not in params_null]
-        if len(error_msg) > 0:
-            return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
-        if len(null_msg) > 0:
-            return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
+        if error_msg:
+            return jsonify({"code": 0, "msg": "参数错误"})
+        if missing_msg:
+            return jsonify({"code": 0, "msg": "缺少报名信息"})
+        if null_msg:
+            return jsonify({"code": 0, "msg": "缺少报名信息"})
 
         course = Course.query.filter(Course.id == args.get('course_id', None)).first()
         if not course:
@@ -124,7 +127,7 @@ class StudentView(MethodView):
             if not image_file:
                 continue
             if not allowed_file(image_file.filename):
-                return jsonify({"code": 0, "msg": "only allow image types: " + str(ALLOWED_EXTENSIONS)})
+                return jsonify({"code": 0, "msg": "图片格式不正确，仅允许一下格式 " + str(ALLOWED_EXTENSIONS)})
             # 保存文件
             image_path = image_save(image_key, image_file)
             # 参数更新

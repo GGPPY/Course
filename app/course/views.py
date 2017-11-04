@@ -297,7 +297,7 @@ class StudentView(MethodView):
             return jsonify(code=0, msg='请使用multipart/form-data类型上传表单')
         params_valid = ('card_image_front', 'card_image_back', 'pay_image', 'course_id', 'name', 'phone', 'wx',
                         'wx_name', 'qq', 'area', 'base', 'size')
-        params_null = ('wx_name',)
+        params_null = ('wx_name', 'qq', 'area')
         args = request.files.to_dict()
         args.update(request.form.to_dict())
         error_msg = [x for x in args if x not in params_valid]
