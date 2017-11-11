@@ -4,6 +4,7 @@ import threading
 
 from flask import current_app, jsonify, request, session, send_from_directory
 from flask.views import MethodView
+from sqlalchemy import or_
 from flask_mail import Message
 
 from .. import db
@@ -28,14 +29,18 @@ class StudentView(MethodView):
         missing_msg = [x for x in params_valid if x not in args]
         if len(missing_msg) > 0:
             return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
+        student_id = args.get('id')
         phone = args.get('phone')
         name = args.get('name')
         course_id = args.get('course_id')
+        rule = [Student.phone == phone, Student.course_id == course_id, Student.name == name]
+        if student_id:
+            rule.append(or_(Student.course_id == student_id))
         column = list(Student.__table__.c)
         column.extend([Course.start_time, Course.end_time, Subject.name.label('course_name')])
         data = Student.query.with_entities(*column).join(Course, Student.course_id == Course.id)\
             .join(Subject, Course.subject_id == Subject.id)\
-            .filter(Student.phone == phone, Student.course_id == course_id, Student.name == name).first()
+            .filter(*rule).first()
         if data:
             session.update({"student_id": data.id})
             return jsonify({"code": 1, "msg": "查询成功", "data": data})
