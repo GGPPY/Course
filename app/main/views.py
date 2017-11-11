@@ -115,8 +115,6 @@ class StudentView(MethodView):
         null_msg = [key for key, value in args.iteritems() if not value and key not in params_null]
         if error_msg:
             return jsonify({"code": 0, "msg": "参数错误"})
-        if missing_msg:
-            return jsonify({"code": 0, "msg": "缺少报名信息"})
         if null_msg or len(args) < 1:
             return jsonify({"code": 0, "msg": "缺少报名信息"})
 
