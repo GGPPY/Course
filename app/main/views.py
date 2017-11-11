@@ -35,7 +35,7 @@ class StudentView(MethodView):
         course_id = args.get('course_id')
         rule = [Student.phone == phone, Student.course_id == course_id, Student.name == name]
         if student_id:
-            rule.append(or_(Student.course_id == student_id))
+            rule.append(or_(Student.id == student_id))
         column = list(Student.__table__.c)
         column.extend([Course.start_time, Course.end_time, Subject.name.label('course_name')])
         data = Student.query.with_entities(*column).join(Course, Student.course_id == Course.id)\
