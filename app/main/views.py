@@ -3,8 +3,8 @@ import os
 import threading
 
 from flask import current_app, jsonify, request, session, send_from_directory
+from werkzeug.datastructures import FileStorage
 from flask.views import MethodView
-from sqlalchemy import or_
 from flask_mail import Message
 
 from .. import db
@@ -106,7 +106,8 @@ class StudentView(MethodView):
             return jsonify(code=0, msg='请使用multipart/form-data类型上传表单')
         params_valid = ('card_image_front', 'card_image_back', 'pay_image', 'course_id', 'name', 'phone', 'wx',
                         'wx_name', 'qq', 'area', 'base', 'size')
-        params_null = ('wx_name', 'qq', 'area')
+        params_null = ('wx_name', 'qq', 'area', 'card_image_front', 'card_image_back', 'pay_image', 'course_id',
+                       'name', 'phone', 'wx', 'base', 'size')
         args = request.files.to_dict()
         args.update(request.form.to_dict())
         error_msg = [x for x in args if x not in params_valid]
@@ -116,7 +117,7 @@ class StudentView(MethodView):
             return jsonify({"code": 0, "msg": "参数错误"})
         if missing_msg:
             return jsonify({"code": 0, "msg": "缺少报名信息"})
-        if null_msg:
+        if null_msg or len(args) < 1:
             return jsonify({"code": 0, "msg": "缺少报名信息"})
 
         course = Course.query.filter(Course.id == args.get('course_id', None)).first()
@@ -129,7 +130,7 @@ class StudentView(MethodView):
 
         for image_key in ("card_image_front", "card_image_back", "pay_image"):
             image_file = args.get(image_key)
-            if not image_file:
+            if not image_file or not isinstance(image_file, FileStorage):
                 continue
             if not allowed_file(image_file.filename):
                 return jsonify({"code": 0, "msg": "图片格式不正确，仅允许一下格式 " + str(ALLOWED_EXTENSIONS)})

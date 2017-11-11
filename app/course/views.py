@@ -6,6 +6,8 @@ import os
 from flask import current_app, request, jsonify
 from flask.views import MethodView
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
+
 
 from .. import db
 from .models import Student, Course, Subject
@@ -297,14 +299,15 @@ class StudentView(MethodView):
             return jsonify(code=0, msg='请使用multipart/form-data类型上传表单')
         params_valid = ('card_image_front', 'card_image_back', 'pay_image', 'course_id', 'name', 'phone', 'wx',
                         'wx_name', 'qq', 'area', 'base', 'size')
-        params_null = ('wx_name', 'qq', 'area')
+        params_null = ('wx_name', 'qq', 'area', 'card_image_front', 'card_image_back', 'pay_image', 'course_id',
+                       'name', 'phone', 'wx', 'base', 'size')
         args = request.files.to_dict()
         args.update(request.form.to_dict())
         error_msg = [x for x in args if x not in params_valid]
         null_msg = [key for key, value in args.iteritems() if not value and key not in params_null]
         if len(error_msg) > 0:
             return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
-        if len(null_msg) > 0:
+        if null_msg or len(args) < 1:
             return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
 
         course = Course.query.filter(Course.id == args.get('course_id', None)).first()
@@ -317,7 +320,7 @@ class StudentView(MethodView):
 
         for image_key in ("card_image_front", "card_image_back", "pay_image"):
             image_file = args.get(image_key)
-            if not image_file:
+            if not image_file or not isinstance(image_file, FileStorage):
                 continue
             if not allowed_file(image_file.filename):
                 return jsonify({"code": 0, "msg": "only allow image types: " + str(ALLOWED_EXTENSIONS)})
