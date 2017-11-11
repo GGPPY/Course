@@ -25,9 +25,9 @@ class StudentView(MethodView):
     def get():
         args = request.args
         params_valid = ('phone', 'name', 'course_id')
-        error_msg = [x for x in args if x not in params_valid]
-        if len(error_msg) > 0:
-            return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
+        missing_msg = [x for x in params_valid if x not in args]
+        if len(missing_msg) > 0:
+            return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
         phone = args.get('phone')
         name = args.get('name')
         course_id = args.get('course_id')
