@@ -69,7 +69,7 @@ class Course(db.Model):
                 self.__setattr__(key, value)
 
     def update(self, kwargs):
-        valid_keys = ('name', 'subject_id', 'start_time', 'end_time', 'period')
+        valid_keys = ('name', 'subject_id', 'start_time', 'end_time', 'period', 'active')
         for key, value in kwargs.iteritems():
             if key in valid_keys:
                 self.__setattr__(key, value)

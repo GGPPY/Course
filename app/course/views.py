@@ -176,9 +176,13 @@ class CourseView(MethodView):
 
     @staticmethod
     def get():
+        subject_id = request.args.get('subject_id', None)
         column = list(Course.__table__.c)
         column.append(Subject.name.label('subject_name'))
-        data = Course.query.with_entities(*column).join(Subject, Course.subject_id == Subject.id).all()
+        query = Course.query.with_entities(*column).join(Subject, Course.subject_id == Subject.id)
+        if subject_id:
+            query = query.filter(Course.subject_id == subject_id)
+        data = query.all()
         return jsonify(data)
 
     @staticmethod
@@ -202,7 +206,7 @@ class CourseView(MethodView):
     @staticmethod
     def put(course_id):
         args = request.get_json()
-        params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period')
+        params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period', 'active')
         error_msg = [x for x in args if x not in params_valid]
         missing_msg = [x for x in params_valid if x not in args]
         null_msg = [key for key, value in args.iteritems() if not value]
