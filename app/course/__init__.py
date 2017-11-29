@@ -14,8 +14,8 @@ course.add_url_rule('/subject/<int:subject_id>', view_func=subject, methods=["PU
 
 # 课程增删改查
 lesson = views.CourseView.as_view('lesson')
-course.add_url_rule('/', view_func=lesson, methods=["GET", "POST"])
-course.add_url_rule('/<int:course_id>', view_func=lesson, methods=["PUT", "DELETE"])
+course.add_url_rule('/course', view_func=lesson, methods=["GET", "POST"])
+course.add_url_rule('/course/<int:course_id>', view_func=lesson, methods=["PUT", "DELETE"])
 
 # 学生增删改查
 student = views.StudentView.as_view('student')
