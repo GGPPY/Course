@@ -40,6 +40,7 @@ class Subject(db.Model):
         # target.update_user = current_user.name
         target.update_time = datetime.datetime.now()
 
+
 db.event.listen(Subject, 'before_insert', Subject.before_insert_func)
 db.event.listen(Subject, 'before_update', Subject.before_update_func)
 
@@ -93,6 +94,7 @@ class Course(db.Model):
             pass
         db.session.commit()
 
+
 db.event.listen(Course, 'before_insert', Course.before_insert_func)
 db.event.listen(Course, 'before_update', Course.before_update_func)
 db.event.listen(Course.active, 'set', Course.on_active_change)
@@ -138,6 +140,7 @@ class Student(db.Model):
         if not current_user.is_anonymous:
             target.update_user = current_user.name
         target.update_time = datetime.datetime.now()
+
 
 db.event.listen(Student, 'before_insert', Student.before_insert_func)
 db.event.listen(Student, 'before_update', Student.before_update_func)

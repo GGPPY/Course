@@ -131,7 +131,7 @@ class StudentView(MethodView):
             if not image_file or not isinstance(image_file, FileStorage):
                 continue
             if not allowed_file(image_file.filename):
-                return jsonify({"code": 0, "msg": "图片格式不正确，仅允许一下格式 " + str(ALLOWED_EXTENSIONS)})
+                return jsonify({"code": 0, "msg": "图片格式不正确，仅允许以下格式 " + str(ALLOWED_EXTENSIONS)})
             # 保存文件
             image_path = image_save(image_key, image_file)
             # 参数更新

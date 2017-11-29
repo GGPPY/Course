@@ -142,10 +142,17 @@ class SubjectView(MethodView):
             return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
         if len(null_msg) > 0:
             return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
-        subject_image = args.get('subject_image')
-        if not allowed_file(subject_image.filename):
-            return jsonify({"code": 0, "msg": "only allow image types: " + str(ALLOWED_EXTENSIONS)})
-        args['subject_image'] = image_save("subject_image", subject_image)
+        for image_key in ("subject_image", ):
+            image_file = args.get(image_key)
+            if not image_file or not isinstance(image_file, FileStorage):
+                continue
+            if not allowed_file(image_file.filename):
+                return jsonify({"code": 0, "msg": "图片格式不正确，仅允许以下格式 " + str(ALLOWED_EXTENSIONS)})
+            # 保存文件
+            image_path = image_save(image_key, image_file)
+            # 参数更新
+            args.update({image_key: image_path})
+
         s = Subject.query.filter(Subject.id == subject_id).first()
         if s:
             s.update(args)
