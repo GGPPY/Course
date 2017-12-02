@@ -188,7 +188,7 @@ class CourseView(MethodView):
     @staticmethod
     def post():
         args = request.get_json()
-        params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period')
+        params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period', 'active')
         error_msg = [x for x in args if x not in params_valid]
         missing_msg = [x for x in params_valid if x not in args]
         null_msg = [key for key, value in args.iteritems() if not value]
