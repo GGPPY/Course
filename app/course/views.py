@@ -95,7 +95,7 @@ class SubjectView(MethodView):
 
     @staticmethod
     def get():
-        data = Subject.query.with_entities(*Subject.__table__.c).all()
+        data = Subject.query.with_entities(*Subject.__table__.c).order_by(Subject.id).all()
         return jsonify(data)
 
     @staticmethod
@@ -179,7 +179,7 @@ class CourseView(MethodView):
         subject_id = request.args.get('subject_id', None)
         column = list(Course.__table__.c)
         column.append(Subject.name.label('subject_name'))
-        query = Course.query.with_entities(*column).join(Subject, Course.subject_id == Subject.id)
+        query = Course.query.with_entities(*column).join(Subject, Course.subject_id == Subject.id).order_by(Course.id)
         if subject_id:
             query = query.filter(Course.subject_id == subject_id)
         data = query.all()
@@ -246,7 +246,7 @@ class StudentView(MethodView):
     def get():
         column = list(Student.__table__.c)
         column.append(Course.name.label('course_name'))
-        data = Student.query.with_entities(*column).join(Course, Student.course_id == Course.id).all()
+        data = Student.query.with_entities(*column).join(Course, Student.course_id == Course.id).order_by(Student.id).all()
         return jsonify(data)
 
     @staticmethod
