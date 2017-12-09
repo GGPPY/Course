@@ -191,13 +191,10 @@ class CourseView(MethodView):
         params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period', 'active')
         error_msg = [x for x in args if x not in params_valid]
         missing_msg = [x for x in params_valid if x not in args]
-        null_msg = [key for key, value in args.iteritems() if not len(str(value))]
         if len(error_msg) > 0:
             return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
         if len(args) < len(params_valid):
             return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
-        if len(null_msg) > 0:
-            return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
         course = Course(args)
         db.session.add(course)
         db.session.commit()
@@ -209,13 +206,10 @@ class CourseView(MethodView):
         params_valid = ('name', 'subject_id', 'start_time', 'end_time', 'period', 'active')
         error_msg = [x for x in args if x not in params_valid]
         missing_msg = [x for x in params_valid if x not in args]
-        null_msg = [key for key, value in args.iteritems() if not len(str(value))]
         if len(error_msg) > 0:
             return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
         if len(args) < len(params_valid):
             return jsonify({"code": 0, "msg": "missing params: " + str(missing_msg)})
-        if len(null_msg) > 0:
-            return jsonify({"code": 0, "msg": "params can't be null: " + str(null_msg)})
 
         course = Course.query.filter(Course.id == course_id).first()
         if course:
@@ -260,7 +254,7 @@ class StudentView(MethodView):
         args.update(request.form.to_dict())
         error_msg = [x for x in args if x not in params_valid]
         missing_msg = [x for x in params_valid if x not in args and x not in params_null]
-        null_msg = [key for key, value in args.iteritems() if not len(str(value)) and key not in params_null]
+        null_msg = [key for key, value in args.iteritems() if not value and key not in params_null]
         if len(error_msg) > 0:
             return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
         if len(args) < len(params_valid) - len(params_null):
@@ -306,7 +300,7 @@ class StudentView(MethodView):
         args = request.files.to_dict()
         args.update(request.form.to_dict())
         error_msg = [x for x in args if x not in params_valid]
-        null_msg = [key for key, value in args.iteritems() if not len(str(value)) and key not in params_null]
+        null_msg = [key for key, value in args.iteritems() if not len(value) and key not in params_null]
         if len(error_msg) > 0:
             return jsonify({"code": 0, "msg": "error params: " + str(error_msg)})
         if null_msg or len(args) < 1:
